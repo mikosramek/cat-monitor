@@ -18,6 +18,7 @@ public class CatBehaviour : MonoBehaviour
     private bool racing;
     private Vector3 targetPosition;
     private int internalSegmentIndex;
+    private int lapCount;
 
     private Vector3 startPos;
     private float startTime;
@@ -30,6 +31,8 @@ public class CatBehaviour : MonoBehaviour
     private float CAT_TARGET_OFFSET = 2.5f;
 
     private int catIndex;
+
+    public CameraBehaviour myCam;
 
     private void Awake()
     {
@@ -56,7 +59,11 @@ public class CatBehaviour : MonoBehaviour
 
         transform.position = Vector3.Lerp(startPos, targetPosition, percentageCompleted);
 
-
+        if (lapCount >= 3)
+        {
+            checkForWin(percentageCompleted);
+        }
+        
         if (percentageCompleted >= 1.0f)
         {
             selectNextTarget();
@@ -82,6 +89,7 @@ public class CatBehaviour : MonoBehaviour
         startPos = transform.position;
         racing = true;
         setState(CatState.running);
+        lapCount = 0;
     }
 
     // Call when race has been setup
@@ -132,6 +140,7 @@ public class CatBehaviour : MonoBehaviour
         {
             raceSegmentIndex = 0;
             internalSegmentIndex = 0;
+            lapCount += 1;
         }
 
         //Debug.Log("Total Segments: " + myRace.raceTrack.Length + " | Current Segment: " + raceSegmentIndex + " | Internal Point: " + internalSegmentIndex);
@@ -142,6 +151,7 @@ public class CatBehaviour : MonoBehaviour
         if (internalSegmentIndex == 1)
         {
             timeToMove = myRace.getSegmentTime(raceSegmentIndex);
+            if (myCam) myCam.UpdatePoint(raceSegmentIndex);
         }
         else
         {
@@ -150,6 +160,13 @@ public class CatBehaviour : MonoBehaviour
         setState(myRace.getSegmentState(raceSegmentIndex));
     }
 
+    void checkForWin(float percentage)
+    {
+        if (raceSegmentIndex == 0 && internalSegmentIndex == 1 && percentage > 0.2f)
+        {
+            Debug.Log("Cat won!");
+        }
+    }
 
     // Update different animators based on current cat state
     void UpdateVisual()
@@ -177,5 +194,19 @@ public class CatBehaviour : MonoBehaviour
             default:
                 break;
         }
+    }
+
+    public int getPosition()
+    {
+        return raceSegmentIndex;
+    }
+    public void giveCamera(CameraBehaviour newCam)
+    {
+        Debug.Log(newCam);
+        myCam = newCam;
+    }
+    public void removeCamera()
+    {
+        myCam = null;
     }
 }

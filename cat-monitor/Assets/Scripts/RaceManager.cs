@@ -74,7 +74,7 @@ public struct CatRaceData {
         this.raceTrack = raceTrack;
         for (int i = 0; i < raceSegments.Length; i++)
         {
-            float speed = Mathf.Clamp(Random.Range(speedModifier - 2.5f, speedModifier + 2.5f), 3, 100);
+            float speed = Mathf.Clamp(Random.Range(speedModifier - 2.5f, speedModifier + 2.5f), 3, 100) / 2;
             CatState ev = CatState.running;
             float avgTime = overallTime / i;
             if (i == 0)
