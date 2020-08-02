@@ -5,33 +5,52 @@ using UnityEngine;
 public class RaceManager : MonoBehaviour
 {
     public CatRaceData[] catRaceDatas;
-    void Start()
-    {
-        CreateRaceData();
-    }
+    public RaceTrackPoints[] raceTrack;
+    public CatBehaviour[] cats;
 
-    void Update()
+    private void Awake()
     {
-        
+        if (cats.Length <= 0)
+        {
+            cats = GameObject.FindObjectsOfType<CatBehaviour>();
+        }
+        CreateRaceData();
     }
 
     void CreateRaceData()
     {
-        catRaceDatas = new CatRaceData[5];
+        catRaceDatas = new CatRaceData[cats.Length];
         for (int i = 0; i < catRaceDatas.Length; i++)
         {
             catRaceDatas[i] = new CatRaceData();
-            catRaceDatas[i].createData((i + 1) * 5);
+            catRaceDatas[i].createData((i + 1) * 2, raceTrack);
+            cats[i].setRace(catRaceDatas[i]);
+        }
+        reshuffleCats(cats);
+        for (int i = 0; i < catRaceDatas.Length; i++)
+        {
+            cats[i].setIndex(i);
+        }
+    }
+
+    // https://forum.unity.com/threads/randomize-array-in-c.86871/
+    void reshuffleCats(CatBehaviour[] cats)
+    {
+        // Knuth shuffle algorithm :: courtesy of Wikipedia :)
+        for (int t = 0; t < cats.Length; t++)
+        {
+            CatBehaviour tmp = cats[t];
+            int r = Random.Range(t, cats.Length);
+            cats[t] = cats[r];
+            cats[r] = tmp;
         }
     }
 }
 
-public enum RaceEvent
+[System.Serializable]
+public struct RaceTrackPoints
 {
-    zoom,
-    nothing,
-    tripped,
-    exhausted
+    public Transform[] points;
 }
 
 [System.Serializable]
@@ -39,30 +58,40 @@ public struct CatRaceData {
     [SerializeField]
     RaceSegment[] raceSegments;
     public float overallTime;
-    public void createData(float speedModifier)
+    public RaceTrackPoints[] raceTrack;
+    public float getSegmentTime(int segmentIndex)
+    {
+        return raceSegments[segmentIndex].time;
+    }
+    public CatState getSegmentState(int segmentIndex)
+    {
+        return raceSegments[segmentIndex].segmentState;
+    }
+    public void createData(float speedModifier, RaceTrackPoints[] raceTrack)
     {
         raceSegments = new RaceSegment[6];
         overallTime = 0;
+        this.raceTrack = raceTrack;
         for (int i = 0; i < raceSegments.Length; i++)
         {
-            float speed = Mathf.Clamp(Random.Range(speedModifier - 10, speedModifier + 10), 4, 100);
-            RaceEvent ev = RaceEvent.nothing;
+            float speed = Mathf.Clamp(Random.Range(speedModifier - 2.5f, speedModifier + 2.5f), 3, 100);
+            CatState ev = CatState.running;
             float avgTime = overallTime / i;
             if (i == 0)
             {
-                ev = RaceEvent.nothing;
+                ev = CatState.running;
             }
             else if (speed < avgTime)
             {
-                ev = RaceEvent.zoom;
+                ev = CatState.zooming;
             }
             else if (speed > avgTime * 1.25f)
             {
-                ev = RaceEvent.exhausted;
+                ev = CatState.exhausted;
             }
             else
             {
-                ev = RaceEvent.nothing;
+                ev = CatState.running;
             }
             raceSegments[i].init(speed, ev);
             overallTime += speed;
@@ -74,12 +103,12 @@ public struct CatRaceData {
 public struct RaceSegment
 {
     [SerializeField]
-    public RaceEvent myEvent;
+    public CatState segmentState;
     public float time;
 
-    public void init(float speedModifier, RaceEvent ev)
+    public void init(float speedModifier, CatState ev)
     {
-        myEvent = ev;//(RaceEvent)Random.Range(0, 3);
+        segmentState = ev;//(RaceEvent)Random.Range(0, 3);
         time = speedModifier;
     }
 }
