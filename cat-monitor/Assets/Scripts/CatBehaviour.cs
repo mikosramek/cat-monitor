@@ -24,8 +24,9 @@ public class CatBehaviour : MonoBehaviour
     private float startTime;
     private float timeToMove = 1f;
 
-    private Animator _animator;
+    public Animator _animator;
     private SpriteRenderer _sprite;
+    public Animator _sfxAnimator;
 
     private float scale = 0.25f;
     private float CAT_TARGET_OFFSET = 2.5f;
@@ -34,9 +35,16 @@ public class CatBehaviour : MonoBehaviour
 
     public CameraBehaviour myCam;
 
+    private float raceCompletionPercentage;
+    private float raceStartTime;
+
+    private int LAPS_TO_WIN = 3;
+    private float TIME_BETWEEN_SEGMENTS = 0.5f;
+
+    public bool debugCat = false;
+
     private void Awake()
     {
-        _animator = GetComponentInChildren<Animator>();
         _sprite = GetComponentInChildren<SpriteRenderer>();
         scale = transform.localScale.z;
     }
@@ -58,8 +66,14 @@ public class CatBehaviour : MonoBehaviour
         float percentageCompleted = timeSinceStarted / timeToMove;
 
         transform.position = Vector3.Lerp(startPos, targetPosition, percentageCompleted);
+     
+        raceCompletionPercentage = (Time.time - raceStartTime) / (myRace.overallTime * LAPS_TO_WIN);
+        if(debugCat)
+        {
+            Debug.Log(Time.time - raceStartTime + " out of " + myRace.overallTime * LAPS_TO_WIN);
+        }
 
-        if (lapCount >= 3)
+        if (lapCount >= LAPS_TO_WIN)
         {
             checkForWin(percentageCompleted);
         }
@@ -73,6 +87,7 @@ public class CatBehaviour : MonoBehaviour
     public void setRace(CatRaceData newRace)
     {
         myRace = newRace;
+        myRace.overallTime += myRace.getTotalInBetweenTime(TIME_BETWEEN_SEGMENTS);
     }
 
     public void setIndex(int catIndex)
@@ -90,6 +105,8 @@ public class CatBehaviour : MonoBehaviour
         racing = true;
         setState(CatState.running);
         lapCount = 0;
+        raceCompletionPercentage = 0;
+        raceStartTime = Time.time;
     }
 
     // Call when race has been setup
@@ -155,7 +172,7 @@ public class CatBehaviour : MonoBehaviour
         }
         else
         {
-            timeToMove = 1f;
+            timeToMove = TIME_BETWEEN_SEGMENTS;
         }
         setState(myRace.getSegmentState(raceSegmentIndex));
     }
@@ -164,7 +181,7 @@ public class CatBehaviour : MonoBehaviour
     {
         if (raceSegmentIndex == 0 && internalSegmentIndex == 1 && percentage > 0.2f)
         {
-            Debug.Log("Cat won!");
+            // Cat Won!
         }
     }
 
@@ -183,11 +200,13 @@ public class CatBehaviour : MonoBehaviour
         {
             case CatState.running:
                 _animator.SetTrigger("run");
+                _sfxAnimator.SetTrigger("off");
                 break;
             case CatState.standing:
                 _animator.SetTrigger("stand");
                 break;
             case CatState.zooming:
+                _sfxAnimator.SetTrigger("zoom");
                 break;
             case CatState.exhausted:
                 break;
@@ -202,8 +221,8 @@ public class CatBehaviour : MonoBehaviour
     }
     public void giveCamera(CameraBehaviour newCam)
     {
-        Debug.Log(newCam);
         myCam = newCam;
+        myCam.UpdatePoint(raceSegmentIndex);
     }
     public void removeCamera()
     {

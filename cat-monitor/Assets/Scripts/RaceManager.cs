@@ -8,6 +8,8 @@ public class RaceManager : MonoBehaviour
     public RaceTrackPoints[] raceTrack;
     public CatBehaviour[] cats;
 
+    public CameraBehaviour _cb;
+
     private void Awake()
     {
         if (cats.Length <= 0)
@@ -20,12 +22,14 @@ public class RaceManager : MonoBehaviour
     void CreateRaceData()
     {
         catRaceDatas = new CatRaceData[cats.Length];
+        reshuffleCats(cats);
         for (int i = 0; i < catRaceDatas.Length; i++)
         {
             catRaceDatas[i] = new CatRaceData();
             catRaceDatas[i].createData((i + 1) * 2, raceTrack);
             cats[i].setRace(catRaceDatas[i]);
         }
+        _cb.SetupCamera(cats, cats[0], cats[cats.Length - 1]);
         reshuffleCats(cats);
         for (int i = 0; i < catRaceDatas.Length; i++)
         {
@@ -67,6 +71,10 @@ public struct CatRaceData {
     {
         return raceSegments[segmentIndex].segmentState;
     }
+    public float getTotalInBetweenTime(float inBetweenTime)
+    {
+        return inBetweenTime * raceSegments.Length;
+    }
     public void createData(float speedModifier, RaceTrackPoints[] raceTrack)
     {
         raceSegments = new RaceSegment[6];
@@ -96,6 +104,7 @@ public struct CatRaceData {
             raceSegments[i].init(speed, ev);
             overallTime += speed;
         }
+        //overallTime += raceSegments.Length;
     }
 }
 
