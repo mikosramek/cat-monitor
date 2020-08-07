@@ -56,6 +56,7 @@ public class CatUI : MonoBehaviour
     }
     public void flipText(float textScale)
     {
+        if (!placementTextRect) placementTextRect = placementText.GetComponent<RectTransform>();
         placementTextRect.localScale = new Vector3(textScale, 1, 1);
     }
 }

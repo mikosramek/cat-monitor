@@ -38,8 +38,11 @@ public class CameraBehaviour : MonoBehaviour
     public void SwapCat()
     {
         cats[catFollowIndex].removeCamera();
-        catFollowIndex += 1;
-        if (catFollowIndex >= cats.Length) catFollowIndex = 0;
+        int tempFollowIndex = catFollowIndex;
+        while (catFollowIndex == tempFollowIndex)
+        {
+            catFollowIndex = Random.Range(0, cats.Length);
+        }
         cats[catFollowIndex].giveCamera(this);
         UpdateCatUI();
         UpdatePoint(cats[catFollowIndex].getPosition());
@@ -47,14 +50,15 @@ public class CameraBehaviour : MonoBehaviour
 
     public void UpdateCatUI()
     {
-        _cccUI.UpdateUI(cats[catFollowIndex].GetComponent<CatPortrait>());
+        CatBehaviour updateCat = cats[catFollowIndex];
+        _cccUI.UpdateUI(updateCat.GetComponent<CatPortrait>(), updateCat.getLapCount());
     }
 
     public void SetupCamera(CatBehaviour[] cats, CatBehaviour fastCat, CatBehaviour slowCat)
     {
-        catFollowIndex = 0;
+        catFollowIndex = Random.Range(0, cats.Length);
 
-        this.cats = cats;
+        this.cats = (CatBehaviour[]) cats.Clone();
         this.cats[catFollowIndex].giveCamera(this);
         
         fastestCat = fastCat;

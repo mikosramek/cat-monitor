@@ -38,6 +38,7 @@ public class RaceManager : MonoBehaviour
             catRaceDatas[i] = new CatRaceData();
             catRaceDatas[i].createData((i + 1) * 2, raceTrack);
             cats[i].setRace(catRaceDatas[i]);
+            cats[i]._catUI.gameObject.SetActive(false);
         }
         _cb.SetupCamera(cats, cats[0], cats[cats.Length - 1]);
         reshuffleCats(cats);

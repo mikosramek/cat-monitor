@@ -25,7 +25,7 @@ public class CatBehaviour : MonoBehaviour
     private float timeToMove = 1f;
 
     public Animator _animator;
-    private SpriteRenderer _sprite;
+    public SpriteRenderer _sprite;
     public Animator _sfxAnimator;
 
     private float scale = 0.25f;
@@ -41,15 +41,16 @@ public class CatBehaviour : MonoBehaviour
     private int LAPS_TO_WIN = 3;
     private float TIME_BETWEEN_SEGMENTS = 0.5f;
 
+    private float sectionCompletion;
+    private float overallCompletion;
+
     public bool debugCat = false;
 
     public CatUI _catUI;
 
     private void Awake()
     {
-        _sprite = GetComponentInChildren<SpriteRenderer>();
         scale = transform.localScale.z;
-        _catUI.gameObject.SetActive(false);
     }
 
     void Start()
@@ -84,6 +85,11 @@ public class CatBehaviour : MonoBehaviour
         if (percentageCompleted >= 1.0f)
         {
             selectNextTarget();
+            overallCompletion += 1;
+        }
+        else
+        {
+            sectionCompletion = overallCompletion + percentageCompleted;
         }
     }
 
@@ -237,10 +243,14 @@ public class CatBehaviour : MonoBehaviour
     }
     public float getPercentageDone()
     {
-        return raceCompletionPercentage;
+        return sectionCompletion;
     }
     public void setPositionInRace(int placement)
     {
         _catUI.UpdatePlacementText(placement + 1);
+    }
+    public int getLapCount()
+    {
+        return lapCount;
     }
 }
