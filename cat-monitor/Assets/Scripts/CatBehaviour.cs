@@ -43,10 +43,13 @@ public class CatBehaviour : MonoBehaviour
 
     public bool debugCat = false;
 
+    public CatUI _catUI;
+
     private void Awake()
     {
         _sprite = GetComponentInChildren<SpriteRenderer>();
         scale = transform.localScale.z;
+        _catUI.gameObject.SetActive(false);
     }
 
     void Start()
@@ -90,12 +93,13 @@ public class CatBehaviour : MonoBehaviour
         myRace.overallTime += myRace.getTotalInBetweenTime(TIME_BETWEEN_SEGMENTS);
     }
 
-    public void setIndex(int catIndex)
+    public void setIndex(int catIndex, float startingX)
     {
         this.catIndex = catIndex;
         _sprite.sortingOrder = 10 - catIndex;
+        _catUI.GetComponent<Canvas>().sortingOrder = 10 - catIndex;
         float offset = (CAT_TARGET_OFFSET * catIndex) - (CAT_TARGET_OFFSET * catIndex / 2);
-        transform.position = new Vector3(transform.position.x, offset - 2.5f);
+        transform.position = new Vector3(startingX, offset - 2.5f);
     }
 
     void startRace()
@@ -160,8 +164,6 @@ public class CatBehaviour : MonoBehaviour
             lapCount += 1;
         }
 
-        //Debug.Log("Total Segments: " + myRace.raceTrack.Length + " | Current Segment: " + raceSegmentIndex + " | Internal Point: " + internalSegmentIndex);
-
         setTarget(myRace.raceTrack[raceSegmentIndex].points[internalSegmentIndex]);
         startTime = Time.time;
         startPos = transform.position;
@@ -188,13 +190,16 @@ public class CatBehaviour : MonoBehaviour
     // Update different animators based on current cat state
     void UpdateVisual()
     {
-        if (raceSegmentIndex == 0 || raceSegmentIndex == 1 || raceSegmentIndex == 5)
+        
+        if (targetPosition.x > transform.position.x)
         {
             gameObject.transform.localScale = new Vector3(-scale, scale, scale);
+            _catUI.flipText(1f);
         }
         else
         {
             gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            _catUI.flipText(-1f);
         }
         switch (currentState)
         {
@@ -223,9 +228,19 @@ public class CatBehaviour : MonoBehaviour
     {
         myCam = newCam;
         myCam.UpdatePoint(raceSegmentIndex);
+        _catUI.gameObject.SetActive(true);
     }
     public void removeCamera()
     {
         myCam = null;
+        _catUI.gameObject.SetActive(false);
+    }
+    public float getPercentageDone()
+    {
+        return raceCompletionPercentage;
+    }
+    public void setPositionInRace(int placement)
+    {
+        _catUI.UpdatePlacementText(placement + 1);
     }
 }

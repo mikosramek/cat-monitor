@@ -13,21 +13,26 @@ public class CameraBehaviour : MonoBehaviour
     private CatBehaviour fastestCat;
     private CatBehaviour slowestCat;
 
-    private int catFollowCount = 4;
-    private int currentFollowCount;
-
     public CurrentCatCamUI _cccUI;
+
+    private float startingTime;
+    public float catAirTime;
+
+    private void Update()
+    {
+        float timePercentage = (Time.time - startingTime) / catAirTime;
+        _cccUI.UpdateTimeUntilSwap(timePercentage);
+        if (Time.time - startingTime > catAirTime)
+        {
+            SwapCat();
+            startingTime = Time.time;
+        }
+    }
 
     public void UpdatePoint(int pointIndex)
     {
         Vector3 newPosition = cameraPoints[pointIndex].position;
         transform.position = new Vector3(newPosition.x, newPosition.y, -10);
-        currentFollowCount += 1;
-        if (currentFollowCount >= catFollowCount)
-        {
-            currentFollowCount = 0;
-            SwapCat();
-        }
     }
 
     public void SwapCat()
@@ -37,6 +42,7 @@ public class CameraBehaviour : MonoBehaviour
         if (catFollowIndex >= cats.Length) catFollowIndex = 0;
         cats[catFollowIndex].giveCamera(this);
         UpdateCatUI();
+        UpdatePoint(cats[catFollowIndex].getPosition());
     }
 
     public void UpdateCatUI()
@@ -47,7 +53,6 @@ public class CameraBehaviour : MonoBehaviour
     public void SetupCamera(CatBehaviour[] cats, CatBehaviour fastCat, CatBehaviour slowCat)
     {
         catFollowIndex = 0;
-        currentFollowCount = 0;
 
         this.cats = cats;
         this.cats[catFollowIndex].giveCamera(this);

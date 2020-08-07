@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RaceManager : MonoBehaviour
@@ -10,6 +11,10 @@ public class RaceManager : MonoBehaviour
 
     public CameraBehaviour _cb;
 
+    public float raceStartingX;
+
+    public CatBehaviour[] catStandings;
+
     private void Awake()
     {
         if (cats.Length <= 0)
@@ -17,6 +22,11 @@ public class RaceManager : MonoBehaviour
             cats = GameObject.FindObjectsOfType<CatBehaviour>();
         }
         CreateRaceData();
+        catStandings = new CatBehaviour[cats.Length];
+        for (int i = 0; i < cats.Length; i++)
+        {
+            catStandings[i] = cats[i];
+        }
     }
 
     void CreateRaceData()
@@ -33,7 +43,7 @@ public class RaceManager : MonoBehaviour
         reshuffleCats(cats);
         for (int i = 0; i < catRaceDatas.Length; i++)
         {
-            cats[i].setIndex(i);
+            cats[i].setIndex(i, raceStartingX);
         }
     }
 
@@ -44,10 +54,40 @@ public class RaceManager : MonoBehaviour
         for (int t = 0; t < cats.Length; t++)
         {
             CatBehaviour tmp = cats[t];
-            int r = Random.Range(t, cats.Length);
+            int r = UnityEngine.Random.Range(t, cats.Length);
             cats[t] = cats[r];
             cats[r] = tmp;
         }
+    }
+
+    private void Update()
+    {
+        // sort out positions
+        CatBehaviour[] newStandings = new CatBehaviour[catStandings.Length];
+        newStandings = catStandings.OrderBy(cat => cat.getPercentageDone()).ToArray();
+        newStandings = newStandings.Reverse().ToArray();
+
+        for (int i = 0; i < newStandings.Length; i++)
+        {
+            if(catStandings[i] != newStandings[i])
+            {
+                // Standings have changed
+                catStandings = (CatBehaviour[]) newStandings.Clone();
+                updateCatStandings();
+            }
+        }
+    }
+
+    void updateCatStandings()
+    {
+
+        // send out placement to each cat
+        for (int i = 0; i < cats.Length; i++)
+        {
+            cats[i].setPositionInRace(System.Array.IndexOf(catStandings, cats[i]));
+        }
+        // each cat gives it to their UI
+        // send out placement to UI
     }
 }
 
@@ -82,7 +122,7 @@ public struct CatRaceData {
         this.raceTrack = raceTrack;
         for (int i = 0; i < raceSegments.Length; i++)
         {
-            float speed = Mathf.Clamp(Random.Range(speedModifier - 2.5f, speedModifier + 2.5f), 3, 100) / 2;
+            float speed = Mathf.Clamp(UnityEngine.Random.Range(speedModifier - 2.5f, speedModifier + 2.5f), 3, 100) / 2;
             CatState ev = CatState.running;
             float avgTime = overallTime / i;
             if (i == 0)
