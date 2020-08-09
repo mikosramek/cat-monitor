@@ -10,17 +10,17 @@ public class CurrentCatCamUI : MonoBehaviour
     public TextMeshProUGUI nameUI;
     public TextMeshProUGUI quoteUI;
     public TextMeshProUGUI lapsText;
-    public RectTransform timeBar;
+    public Image timeBar;
 
-    public void UpdateUI(CatPortrait cat, int lapCount)
+    public void UpdateUI(CatPortrait cat, int lapCount, int lapTotal)
     {
         portaitUI.sprite = cat.PortraitSprite;
         nameUI.text = cat.Name;
         quoteUI.text = cat.Quote;
-        lapsText.text = (lapCount + 1) + "/3 laps";
+        lapsText.text = (lapCount + 1) + "/" + lapTotal;
     }
     public void UpdateTimeUntilSwap(float percent)
     {
-        timeBar.localScale = new Vector3(1 - percent, 1, 1);
+        timeBar.fillAmount = 1 - percent;
     }
 }

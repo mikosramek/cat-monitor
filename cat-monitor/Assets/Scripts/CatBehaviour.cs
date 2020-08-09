@@ -26,7 +26,8 @@ public class CatBehaviour : MonoBehaviour
 
     public Animator _animator;
     public SpriteRenderer _sprite;
-    public Animator _sfxAnimator;
+    public LeaderboardCatUI _leaderboardCatUI;
+    private RaceManager _rm;
 
     private float scale = 0.25f;
     private float CAT_TARGET_OFFSET = 2.5f;
@@ -38,7 +39,7 @@ public class CatBehaviour : MonoBehaviour
     private float raceCompletionPercentage;
     private float raceStartTime;
 
-    private int LAPS_TO_WIN = 3;
+    private int LAPS_TO_WIN = 1;
     private float TIME_BETWEEN_SEGMENTS = 0.5f;
 
     private float sectionCompletion;
@@ -51,16 +52,18 @@ public class CatBehaviour : MonoBehaviour
     private void Awake()
     {
         scale = transform.localScale.z;
+        _leaderboardCatUI.setMyCat(this);
     }
 
-    void Start()
+
+    public void resetCat()
     {
         currentState = CatState.standing;
         raceSegmentIndex = 0;
         internalSegmentIndex = 0;
+        overallCompletion = 0;
         racing = false;
         initCat();
-        startRace();
     }
 
     void Update()
@@ -75,6 +78,11 @@ public class CatBehaviour : MonoBehaviour
         if(debugCat)
         {
             Debug.Log(Time.time - raceStartTime + " out of " + myRace.overallTime * LAPS_TO_WIN);
+        }
+
+        if(raceCompletionPercentage > 0.05f)
+        {
+            _rm.endRace(this);
         }
 
         if (lapCount >= LAPS_TO_WIN)
@@ -93,10 +101,11 @@ public class CatBehaviour : MonoBehaviour
         }
     }
 
-    public void setRace(CatRaceData newRace)
+    public void setRace(CatRaceData newRace, RaceManager newManager)
     {
         myRace = newRace;
         myRace.overallTime += myRace.getTotalInBetweenTime(TIME_BETWEEN_SEGMENTS);
+        _rm = newManager;
     }
 
     public void setIndex(int catIndex, float startingX)
@@ -105,10 +114,10 @@ public class CatBehaviour : MonoBehaviour
         _sprite.sortingOrder = 10 - catIndex;
         _catUI.GetComponent<Canvas>().sortingOrder = 10 - catIndex;
         float offset = (CAT_TARGET_OFFSET * catIndex) - (CAT_TARGET_OFFSET * catIndex / 2);
-        transform.position = new Vector3(startingX, offset - 2.5f);
+        transform.position = new Vector3(startingX, offset - 3.5f);
     }
 
-    void startRace()
+    public void startRace()
     {
         startTime = Time.time;
         startPos = transform.position;
@@ -128,6 +137,7 @@ public class CatBehaviour : MonoBehaviour
         racing = false;
         setTarget(myRace.raceTrack[raceSegmentIndex].points[internalSegmentIndex]);
         timeToMove = myRace.getSegmentTime(raceSegmentIndex);
+        UpdateVisual();
     }
 
     void setTarget(Transform newTarget)
@@ -189,7 +199,7 @@ public class CatBehaviour : MonoBehaviour
     {
         if (raceSegmentIndex == 0 && internalSegmentIndex == 1 && percentage > 0.2f)
         {
-            // Cat Won!
+            _rm.endRace(this);
         }
     }
 
@@ -207,19 +217,14 @@ public class CatBehaviour : MonoBehaviour
             gameObject.transform.localScale = new Vector3(scale, scale, scale);
             _catUI.flipText(-1f);
         }
+        _leaderboardCatUI.setState(currentState);
         switch (currentState)
         {
             case CatState.running:
                 _animator.SetTrigger("run");
-                _sfxAnimator.SetTrigger("off");
                 break;
             case CatState.standing:
                 _animator.SetTrigger("stand");
-                break;
-            case CatState.zooming:
-                _sfxAnimator.SetTrigger("zoom");
-                break;
-            case CatState.exhausted:
                 break;
             default:
                 break;
@@ -252,5 +257,9 @@ public class CatBehaviour : MonoBehaviour
     public int getLapCount()
     {
         return lapCount;
+    }
+    public int getTotalLapCount()
+    {
+        return LAPS_TO_WIN;
     }
 }
