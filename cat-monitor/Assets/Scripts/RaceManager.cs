@@ -27,6 +27,7 @@ public class RaceManager : MonoBehaviour
 
     public int startingTicketAmount;
     private int currentTicketAmount;
+    public int amountPerBet;
     private CatBehaviour catBetOn;
 
 
@@ -34,6 +35,7 @@ public class RaceManager : MonoBehaviour
 
     public CountdownUI ui_countdown;
     public FinalStandingsUI ui_finalStandings;
+    public TicketUI ui_ticket;
 
     private void Awake()
     {
@@ -44,6 +46,8 @@ public class RaceManager : MonoBehaviour
         ui_standings.SetActive(false);
         ui_pauseMenu.SetActive(false);
         ui_countdown.gameObject.SetActive(false);
+        currentTicketAmount = startingTicketAmount;
+        ui_ticket.setTicketAmount(currentTicketAmount);
     }
 
     public void setupCats()
@@ -113,6 +117,10 @@ public class RaceManager : MonoBehaviour
                 }
             }
         }
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            pauseGame();
+        }
     }
 
     void updateCatStandings()
@@ -138,22 +146,33 @@ public class RaceManager : MonoBehaviour
     {
         newRace();
     }
+    public void pauseGame()
+    {
+        if (Time.timeScale == 0)
+        {
+            handleResumeButton();
+            return;
+        }
+        Time.timeScale = 0;
+        Time.fixedDeltaTime = this.fixedDeltaTime * Time.timeScale;
+        ui_pauseMenu.SetActive(true);
+    }
     public void handleResumeButton()
     {
+        Time.timeScale = 1;
+        Time.fixedDeltaTime = this.fixedDeltaTime * Time.timeScale;
         ui_pauseMenu.SetActive(false);
         // continue race
     }
     public void PlaceBet(CatBehaviour cat)
     {
         catBetOn = cat;
-        // Hide bet UI
-        // Show Race Countdown UI
-        // Show Race UI
-        // start countdown
         ui_betting.SetActive(false);
         ui_race.SetActive(true);
         ui_countdown.gameObject.SetActive(true);
         ui_countdown.startTimer();
+        currentTicketAmount -= amountPerBet;
+        ui_ticket.updateTicketAmount(currentTicketAmount);
     }
     public void startRace()
     {
@@ -190,6 +209,7 @@ public class RaceManager : MonoBehaviour
             Time.fixedDeltaTime = this.fixedDeltaTime * Time.timeScale;
 
             // show standings UI after 1 seconds
+            ui_race.SetActive(false);
             Invoke("showStandings", 1f);
         }
     }
@@ -197,8 +217,18 @@ public class RaceManager : MonoBehaviour
     {
         Time.timeScale = 1;
         Time.fixedDeltaTime = this.fixedDeltaTime * Time.timeScale;
-        ui_finalStandings.updateStandings(catStandings);
+        int betResult = System.Array.IndexOf(catStandings, catBetOn);
+        int[] moneyChanges = new int[] { 150, 100, 50, 20, 0 };
+        int ticketChange = moneyChanges[betResult] - amountPerBet;
+        string text = ticketChange.ToString();
+        if (ticketChange > 0)
+        {
+            text = "+" + text;
+        }
+        ui_finalStandings.updateStandings(catStandings, betResult, text);
         ui_standings.SetActive(true);
+        currentTicketAmount += moneyChanges[betResult];
+        ui_ticket.updateTicketAmount(currentTicketAmount);
     }
     public void quitGame()
     {

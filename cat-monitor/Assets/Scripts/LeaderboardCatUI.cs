@@ -10,12 +10,15 @@ public class LeaderboardCatUI : MonoBehaviour
     public CatBehaviour myCat;
     private RectTransform myRect;
 
-    private void Awake()
+    private void Start()
     {
         LeaderboardUI _lbUI = GameObject.FindObjectOfType<LeaderboardUI>();
         myRect = GetComponent<RectTransform>();
-        zoom = _lbUI.zoom;
-        exhausted = _lbUI.exhausted;
+        if (_lbUI != null)
+        {
+            zoom = _lbUI.zoom;
+            exhausted = _lbUI.exhausted;
+        }
     }
 
     public void setState(CatState newState)
@@ -47,6 +50,7 @@ public class LeaderboardCatUI : MonoBehaviour
 
     public void UpdatePosition(Vector3 position)
     {
+        if (myRect == null) myRect = GetComponent<RectTransform>();
         myRect.localPosition = position;
     }
 }

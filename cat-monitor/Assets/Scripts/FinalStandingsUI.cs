@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class FinalStandingsUI : MonoBehaviour
 {
@@ -10,6 +11,9 @@ public class FinalStandingsUI : MonoBehaviour
     private LeaderboardCatUI[] cats;
 
     Dictionary<CatBehaviour, LeaderboardCatUI> catUI = new Dictionary<CatBehaviour, LeaderboardCatUI>();
+
+    public TextMeshProUGUI amountChanged;
+    public GameObject betText;
 
     private void Awake()
     {
@@ -26,7 +30,7 @@ public class FinalStandingsUI : MonoBehaviour
         }
     }
 
-    public void updateStandings(CatBehaviour[] standings)
+    public void updateStandings(CatBehaviour[] standings, int betPlacement, string ticketChange)
     {
         for (int i = 0; i < cats.Length; i++)
         {
@@ -36,5 +40,7 @@ public class FinalStandingsUI : MonoBehaviour
                 tempCatUI.UpdatePosition(positions[i]);
             }
         }
+        betText.GetComponent<RectTransform>().localPosition = new Vector3(betText.GetComponent<RectTransform>().localPosition.x, positions[betPlacement].y);
+        amountChanged.text = ticketChange;
     }
 }

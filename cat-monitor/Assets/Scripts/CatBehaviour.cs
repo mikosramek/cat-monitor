@@ -39,7 +39,7 @@ public class CatBehaviour : MonoBehaviour
     private float raceCompletionPercentage;
     private float raceStartTime;
 
-    private int LAPS_TO_WIN = 1;
+    private int LAPS_TO_WIN = 5;
     private float TIME_BETWEEN_SEGMENTS = 0.5f;
 
     private float sectionCompletion;
@@ -78,11 +78,6 @@ public class CatBehaviour : MonoBehaviour
         if(debugCat)
         {
             Debug.Log(Time.time - raceStartTime + " out of " + myRace.overallTime * LAPS_TO_WIN);
-        }
-
-        if(raceCompletionPercentage > 0.05f)
-        {
-            _rm.endRace(this);
         }
 
         if (lapCount >= LAPS_TO_WIN)
